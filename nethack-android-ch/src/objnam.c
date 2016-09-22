@@ -840,7 +840,7 @@ boolean with_price;
     switch (obj->oclass) {
     case AMULET_CLASS:
         if (obj->owornmask & W_AMUL)
-            Strcat(bp, " (being worn)");
+            Strcat(bp, " ( 穿戴中)");
         break;
     case WEAPON_CLASS:
         if (ispoisoned)
@@ -854,19 +854,19 @@ boolean with_price;
         break;
     case ARMOR_CLASS:
         if (obj->owornmask & W_ARMOR)
-            Strcat(bp, (obj == uskin) ? " (embedded in your skin)"
-                                      : " (being worn)");
+            Strcat(bp, (obj == uskin) ? " ( 嵌在你的皮肤里)"
+                                      : " ( 穿戴中)");
         goto plus;
     case TOOL_CLASS:
         /* weptools already get this done when we go to the +n code */
         if (!is_weptool(obj))
             add_erosion_words(obj, prefix);
         if (obj->owornmask & (W_TOOL /* blindfold */ | W_SADDLE)) {
-            Strcat(bp, " (being worn)");
+            Strcat(bp, " ( 穿戴中)");
             break;
         }
         if (obj->otyp == LEASH && obj->leashmon != 0) {
-            Strcat(bp, " (in use)");
+            Strcat(bp, " ( 使用中)");
             break;
         }
         if (is_weptool(obj))
@@ -876,8 +876,8 @@ boolean with_price;
                 Strcpy(tmpbuf, "no");
             else
                 Sprintf(tmpbuf, "%d", obj->spe);
-            Sprintf(eos(bp), " (%s candle%s%s)", tmpbuf, plur(obj->spe),
-                    !obj->lamplit ? " attached" : ", lit");
+            Sprintf(eos(bp), " (%s 蜡烛%s)", tmpbuf,
+                    !obj->lamplit ? " 在上面" : ",  点着");
             break;
         } else if (obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP
                    || obj->otyp == BRASS_LANTERN || Is_candle(obj)) {
@@ -885,7 +885,7 @@ boolean with_price;
                 && obj->age < 20L * (long) objects[obj->otyp].oc_cost)
                 Strcat(prefix, "partly used ");
             if (obj->lamplit)
-                Strcat(bp, " (lit)");
+                Strcat(bp, " ( 点着)");
             break;
         }
         if (objects[obj->otyp].oc_charged)
@@ -899,18 +899,18 @@ boolean with_price;
         break;
     case POTION_CLASS:
         if (obj->otyp == POT_OIL && obj->lamplit)
-            Strcat(bp, " (lit)");
+            Strcat(bp, " ( 点着)");
         break;
     case RING_CLASS:
         add_erosion_words(obj, prefix);
     ring:
         if (obj->owornmask & W_RINGR)
-            Strcat(bp, " (on right ");
+            Strcat(bp, " ( 右 ");
         if (obj->owornmask & W_RINGL)
-            Strcat(bp, " (on left ");
+            Strcat(bp, " ( 左 ");
         if (obj->owornmask & W_RING) {
             Strcat(bp, body_part(HAND));
-            Strcat(bp, ")");
+            Strcat(bp, " 上)");
         }
         if (known && objects[obj->otyp].oc_charged) {
             Strcat(prefix, sitoa(obj->spe));
@@ -933,7 +933,7 @@ boolean with_price;
                 Strcat(prefix, mons[omndx].mname);
                 Strcat(prefix, " ");
                 if (obj->spe)
-                    Strcat(bp, " (laid by you)");
+                    Strcat(bp, " ( 你下的)");
             }
         }
         if (obj->otyp == MEAT_RING)
@@ -943,23 +943,25 @@ boolean with_price;
     case CHAIN_CLASS:
         add_erosion_words(obj, prefix);
         if (obj->owornmask & W_BALL)
-            Strcat(bp, " (chained to you)");
+            Strcat(bp, " ( 拴在你身上)");
         break;
     }
 
     if ((obj->owornmask & W_WEP) && !mrg_to_wielded) {
         if (obj->quan != 1L) {
-            Strcat(bp, " (wielded)");
+            Strcat(bp, " ( 使用中)");
         } else {
             const char *hand_s = body_part(HAND);
 
-            if (bimanual(obj))
-                hand_s = makeplural(hand_s);
-            Sprintf(eos(bp), " (weapon in %s)", hand_s);
+            if (bimanual(obj)){
+                //hand_s = makeplural(hand_s);
+                Sprintf(eos(bp), " ( 拿在双%s 上)", hand_s);
+            }
+            else Sprintf(eos(bp), " ( 拿在%s 上)", hand_s);
 
             if (warn_obj_cnt && obj == uwep && (EWarn_of_mon & W_WEP) != 0L) {
                 /* presumably can be felt when blind */
-                Strcat(bp, " (glowing");
+                Strcat(bp, " ( 发光的");
                 if (!Blind)
                     Sprintf(eos(bp), " %s", glow_color(obj->oartifact));
                 Strcat(bp, ")");
@@ -968,9 +970,9 @@ boolean with_price;
     }
     if (obj->owornmask & W_SWAPWEP) {
         if (u.twoweap)
-            Sprintf(eos(bp), " (wielded in other %s)", body_part(HAND));
+            Sprintf(eos(bp), " ( 拿在另一只%s 上)", body_part(HAND));
         else
-            Strcat(bp, " (alternate weapon; not wielded)");
+            Strcat(bp, " ( 备用武器;  未使用)");
     }
     if (obj->owornmask & W_QUIVER) {
         switch (obj->oclass) {
@@ -978,16 +980,16 @@ boolean with_price;
             if (is_ammo(obj)) {
                 if (objects[obj->otyp].oc_skill == -P_BOW) {
                     /* Ammo for a bow */
-                    Strcat(bp, " (in quiver)");
+                    Strcat(bp, " ( 箭囊中)");
                     break;
                 } else {
                     /* Ammo not for a bow */
-                    Strcat(bp, " (in quiver pouch)");
+                    Strcat(bp, " ( 囊中)");
                     break;
                 }
             } else {
                 /* Weapons not considered ammo */
-                Strcat(bp, " (at the ready)");
+                Strcat(bp, " ( 准备就绪)");
                 break;
             }
         /* Small things and ammo not for a bow */
@@ -996,17 +998,17 @@ boolean with_price;
         case WAND_CLASS:
         case COIN_CLASS:
         case GEM_CLASS:
-            Strcat(bp, " (in quiver pouch)");
+            Strcat(bp, " ( 囊中)");
             break;
         default: /* odd things */
-            Strcat(bp, " (at the ready)");
+            Strcat(bp, " ( 准备就绪)");
         }
     }
     if (!iflags.suppress_price && is_unpaid(obj)) {
         long quotedprice = unpaid_cost(obj, TRUE);
 
-        Sprintf(eos(bp), " (%s, %ld %s)",
-                obj->unpaid ? "unpaid" : "contents",
+        Sprintf(eos(bp), " ( %s, %ld %s)",
+                obj->unpaid ? "未付款" : "里面未付款",
                 quotedprice, currency(quotedprice));
     } else if (with_price) {
         long price = get_cost_of_shop_item(obj);
